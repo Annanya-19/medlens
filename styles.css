@@ -844,22 +844,39 @@ body {
   fill: none;
   stroke-width: 12;
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.4s ease;
+  transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.4s ease;
 }
 
 .gauge-bar.risk-high {
   stroke: #ef4444;
-  filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+  filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.7));
 }
 
 .gauge-bar.risk-moderate {
   stroke: #f59e0b;
-  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
+  filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.7));
 }
 
 .gauge-bar.risk-low {
   stroke: #10b981;
-  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6));
+  filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.7));
+}
+
+/* Tooltip on chart nodes */
+.chart-tooltip {
+  position: absolute;
+  padding: 0.3rem 0.6rem;
+  background: rgba(10, 15, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #ffffff;
+  pointer-events: none;
+  transform: translate(-50%, -120%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  white-space: nowrap;
 }
 
 .gauge-center-content {
