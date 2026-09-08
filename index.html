@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DiaEase — Proactive Hypoglycaemia Decision Support</title>
+  <meta name="description" content="DiaEase is a proactive hypoglycaemia decision-support prototype predicting near-term glucose risks and proposing autonomous safety actions.">
+  
+  <!-- Modern Medical Typography: Outfit (Data/Headings) + Inter (Interface/Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Ambient Biotech Molecular Background -->
+  <div class="biotech-background" aria-hidden="true">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+    <svg class="molecular-grid" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="hex-grid" width="60" height="103.923" patternUnits="userSpaceOnUse">
+          <path d="M 30,0 L 60,17.32 L 60,51.96 L 30,69.28 L 0,51.96 L 0,17.32 Z" fill="none" stroke="rgba(224, 130, 70, 0.07)" stroke-width="1.2"/>
+          <circle cx="30" cy="0" r="2.5" fill="rgba(217, 119, 6, 0.15)"/>
+          <circle cx="60" cy="51.96" r="2.5" fill="rgba(217, 119, 6, 0.15)"/>
+          <circle cx="0" cy="51.96" r="2.5" fill="rgba(217, 119, 6, 0.15)"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#hex-grid)" />
+    </svg>
+  </div>
+
+  <div class="app-container">
+    <!-- Top Header Bar -->
+    <header class="app-header glass-panel">
+      <div class="brand-group">
+        <div class="brand-logo-wrapper">
+          <svg class="brand-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="18" stroke="url(#brand-grad)" stroke-width="2.5" stroke-dasharray="80 30" />
+            <circle cx="20" cy="20" r="11" fill="url(#core-grad)" fill-opacity="0.2" stroke="url(#brand-grad)" stroke-width="1.5" />
+            <circle cx="20" cy="20" r="4.5" fill="#f59e0b" />
+            <path d="M12 20H28M20 12V28" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-opacity="0.8"/>
+            <defs>
+              <linearGradient id="brand-grad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#10b981"/>
+                <stop offset="0.5" stop-color="#f59e0b"/>
+                <stop offset="1" stop-color="#f97316"/>
+              </linearGradient>
+              <linearGradient id="core-grad" x1="0" y1="0" x2="40" y2="40">
+                <stop stop-color="#f59e0b"/>
+                <stop offset="1" stop-color="#10b981"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="pulse-ring"></div>
+        </div>
+        <div class="brand-meta">
+          <div class="brand-title-row">
+            <h1 class="brand-name">DiaEase</h1>
+            <span class="brand-tag">PROTOTYPE</span>
+          </div>
+          <p class="brand-tagline">Predict before the low.</p>
+        </div>
+      </div>
+
+      <!-- Live Agent Status Indicator -->
+      <div class="agent-status-wrapper">
+        <div class="agent-status-pill" id="agentStatusPill">
+          <span class="status-dot-pulse"></span>
+          <span class="status-text" id="agentStatusText">AI Agent active</span>
+        </div>
+        <div class="agent-badge-info" title="DiaEase Agent autonomously decides and proposes actions. DiaEase Assistant explains.">
+          <span class="info-badge">AGENT SYSTEM</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Interactive Clinical Presets Banner (Quick Judge Demo) -->
+    <section class="quick-presets-bar glass-panel">
+      <div class="presets-label">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+        <span>Demo Scenarios:</span>
+      </div>
+      <div class="presets-buttons">
+        <button type="button" class="preset-btn active" id="presetScenarioHigh" onclick="loadScenario('high')">
+          <span class="preset-dot high"></span>
+          Scenario A: Exercise + Insulin (High Risk)
+        </button>
+        <button type="button" class="preset-btn" id="presetScenarioMod" onclick="loadScenario('moderate')">
+          <span class="preset-dot moderate"></span>
+          Scenario B: Moderate Fall (Pre-Meal)
+        </button>
+        <button type="button" class="preset-btn" id="presetScenarioLow" onclick="loadScenario('low')">
+          <span class="preset-dot low"></span>
+          Scenario C: Stable Baseline (Low Risk)
+        </button>
+      </div>
+    </section>
+
+    <!-- Health Context Input Section -->
+    <section class="context-section glass-panel">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <div class="section-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="section-title">Patient Glycemic Context</h2>
+            <p class="section-subtitle">Real-time physiological inputs for the DiaEase Agent</p>
+          </div>
+        </div>
+        <div class="api-status-tag" id="apiStatusTag">
+          <span class="api-dot"></span> Backend Connected
+        </div>
+      </div>
+
+      <form id="healthContextForm" class="context-form" onsubmit="handleAnalyzeSubmit(event)">
+        <div class="form-grid">
+          <!-- Glucose Input -->
+          <div class="form-group">
+            <label for="inputGlucose">Current Glucose <span class="unit">(mg/dL)</span></label>
+            <div class="input-with-icon">
+              <input type="number" id="inputGlucose" name="glucose" min="30" max="450" value="82" required>
+              <span class="input-adornment">mg/dL</span>
+            </div>
+          </div>
+
+          <!-- Trend Input -->
+          <div class="form-group">
+            <label for="inputTrend">Glucose Trend</label>
+            <div class="select-wrapper">
+              <select id="inputTrend" name="trend">
+                <option value="falling" selected>↓ Falling</option>
+                <option value="stable">→ Stable</option>
+                <option value="rising">↑ Rising</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Insulin Taken -->
+          <div class="form-group">
+            <label for="inputInsulinTaken">Recent Insulin</label>
+            <div class="select-wrapper">
+              <select id="inputInsulinTaken" name="insulin_taken" onchange="toggleInsulinFields()">
+                <option value="yes" selected>Yes (Bolus/Rapid)</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Insulin Dose -->
+          <div class="form-group" id="groupInsulinDose">
+            <label for="inputInsulinDose">Insulin Dose <span class="unit">(Units)</span></label>
+            <div class="input-with-icon">
+              <input type="number" id="inputInsulinDose" name="insulin_dose" min="0" max="60" step="0.5" value="4.0">
+              <span class="input-adornment">U</span>
+            </div>
+          </div>
+
+          <!-- Time Since Insulin -->
+          <div class="form-group" id="groupInsulinTime">
+            <label for="inputTimeSinceInsulin">Time Since Dose <span class="unit">(min)</span></label>
+            <div class="input-with-icon">
+              <input type="number" id="inputTimeSinceInsulin" name="time_since_insulin" min="0" max="480" value="45">
+              <span class="input-adornment">min</span>
+            </div>
+          </div>
+
+          <!-- Recent Meal -->
+          <div class="form-group">
+            <label for="inputRecentMeal">Recent Meal</label>
+            <div class="select-wrapper">
+              <select id="inputRecentMeal" name="recent_meal">
+                <option value="no" selected>No (Fasting/Delayed)</option>
+                <option value="yes">Yes (Eaten recently)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Carbohydrates -->
+          <div class="form-group">
+            <label for="inputCarbIntake">Carbohydrates <span class="unit">(grams)</span></label>
+            <div class="input-with-icon">
+              <input type="number" id="inputCarbIntake" name="carb_intake" min="0" max="250" value="0">
+              <span class="input-adornment">g</span>
+            </div>
+          </div>
+
+          <!-- Physical Activity -->
+          <div class="form-group">
+            <label for="inputActivity">Physical Activity</label>
+            <div class="select-wrapper">
+              <select id="inputActivity" name="activity_level">
+                <option value="none">None (Resting)</option>
+                <option value="low">Light (Stroll)</option>
+                <option value="moderate" selected>Moderate (Brisk / Gym)</option>
+                <option value="high">High (Cardio / Intense)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="analyze-btn" id="analyzeBtn">
+            <span class="btn-spinner" id="analyzeSpinner" aria-hidden="true"></span>
+            <span class="btn-icon" id="analyzeIcon">⚡</span>
+            <span class="btn-text" id="analyzeBtnText">Analyze with DiaEase Agent</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Main Dashboard Cards Grid -->
+    <main class="dashboard-grid">
+      
+      <!-- 1. CURRENT GLUCOSE CARD -->
+      <article class="dash-card current-glucose-card glass-panel" id="cardCurrentGlucose">
+        <div class="card-header">
+          <span class="card-eyebrow">CONTINUOUS MONITORING</span>
+          <span class="badge badge-monitoring" id="glucoseStatusBadge">Monitoring</span>
+        </div>
+        <div class="glucose-hero">
+          <div class="glucose-value-wrap">
+            <span class="glucose-number" id="displayGlucoseVal">82</span>
+            <span class="glucose-unit">mg/dL</span>
+          </div>
+          <div class="glucose-trend-badge falling" id="displayTrendBadge">
+            <span class="trend-icon" id="displayTrendIcon">↓</span>
+            <span class="trend-text" id="displayTrendText">Falling</span>
+          </div>
+        </div>
+        
+        <!-- Glycemic Target Range Bar -->
+        <div class="range-tracker">
+          <div class="range-labels">
+            <span class="range-lbl danger">Hypo &lt;70</span>
+            <span class="range-lbl target">Target 70–140</span>
+            <span class="range-lbl high">&gt;140</span>
+          </div>
+          <div class="range-track">
+            <div class="zone zone-hypo" style="width: 25%;"></div>
+            <div class="zone zone-target" style="width: 45%;"></div>
+            <div class="zone zone-hyper" style="width: 30%;"></div>
+            <div class="range-pin" id="glucoseRangePin" style="left: 29.5%;"></div>
+          </div>
+          <div class="range-footnote" id="glucoseStatusFootnote">
+            Approaching hypoglycaemia threshold (70 mg/dL)
+          </div>
+        </div>
+      </article>
+
+      <!-- 2. RISK CARD: AI HYPOGLYCAEMIA RISK -->
+      <article class="dash-card risk-card glass-panel" id="cardHypoRisk">
+        <div class="card-header">
+          <span class="card-eyebrow">AGENT ASSESSMENT</span>
+          <span class="risk-level-badge risk-high" id="riskLevelBadge">HIGH RISK</span>
+        </div>
+        <h3 class="card-title">AI Hypoglycaemia Risk</h3>
+
+        <div class="risk-visual-container">
+          <!-- SVG Radial Risk Gauge -->
+          <div class="gauge-wrapper">
+            <svg class="radial-gauge-svg" viewBox="0 0 160 160">
+              <circle class="gauge-bg" cx="80" cy="80" r="66" />
+              <circle class="gauge-bar risk-high" id="gaugeCircleBar" cx="80" cy="80" r="66" stroke-dasharray="414.69" stroke-dashoffset="149.28" />
+            </svg>
+            <div class="gauge-center-content">
+              <span class="gauge-percent" id="riskScoreDisplay">64<small>%</small></span>
+              <span class="gauge-sub" id="riskScoreSub">Probability</span>
+            </div>
+          </div>
+
+          <div class="risk-factors-pane">
+            <div class="factors-heading">
+              <span class="factors-why">Why?</span>
+              <span class="factors-sub">Key Contributing Factors:</span>
+            </div>
+            <div class="factors-chips-list" id="riskFactorsList">
+              <span class="factor-chip"><span class="chip-dot"></span> Recent insulin</span>
+              <span class="factor-chip"><span class="chip-dot"></span> Falling trend</span>
+              <span class="factor-chip"><span class="chip-dot"></span> Physical activity</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 3. PREDICTION CARD: 30-MINUTE GLUCOSE PREDICTION -->
+      <article class="dash-card prediction-card glass-panel" id="cardPrediction">
+        <div class="card-header">
+          <span class="card-eyebrow">PREDICTIVE TRAJECTORY</span>
+          <span class="badge badge-predictive" id="predictionDeltaBadge">Predicted: 45 mg/dL</span>
+        </div>
+        <h3 class="card-title">30-Minute Glucose Trajectory</h3>
+
+        <div class="prediction-chart-container">
+          <!-- Trajectory SVG Graph -->
+          <svg id="trajectoryChartSvg" class="trajectory-svg" viewBox="0 0 460 180" preserveAspectRatio="none">
+            <!-- Grid Lines -->
+            <line x1="40" y1="30" x2="440" y2="30" class="chart-grid-line" />
+            <line x1="40" y1="80" x2="440" y2="80" class="chart-grid-line" />
+            <line x1="40" y1="130" x2="440" y2="130" class="chart-grid-line" />
+
+            <!-- Hypo Warning Threshold line at 70 mg/dL -->
+            <line id="hypoThresholdLine" x1="40" y1="105" x2="440" y2="105" class="hypo-alert-line" />
+            <text x="44" y="100" class="hypo-alert-label">Hypo Alert Zone (70 mg/dL)</text>
+
+            <!-- Gradient Area & Stroke Path (Dynamically rendered in app.js) -->
+            <defs>
+              <linearGradient id="trajAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#ef4444" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+            <path id="chartAreaPath" d="" fill="url(#trajAreaGrad)" />
+            <path id="chartStrokePath" d="" class="trajectory-line" />
+
+            <!-- Trajectory Nodes -->
+            <g id="chartNodesGroup"></g>
+          </svg>
+          
+          <!-- X-Axis Labels -->
+          <div class="chart-x-axis">
+            <div class="x-point"><span>Now</span><strong id="nodeValNow">82</strong></div>
+            <div class="x-point"><span>+10m</span><strong id="nodeVal10">68</strong></div>
+            <div class="x-point"><span>+20m</span><strong id="nodeVal20">55</strong></div>
+            <div class="x-point"><span>+30m</span><strong id="nodeVal30">45</strong></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 4. AGENT REASONING CARD -->
+      <article class="dash-card reasoning-card glass-panel" id="cardReasoning">
+        <div class="card-header">
+          <span class="card-eyebrow">AGENT REASONING</span>
+          <span class="badge badge-autonomous">Autonomous Logic</span>
+        </div>
+        <h3 class="card-title">Why DiaEase Thinks This</h3>
+        
+        <div class="reasoning-list" id="reasoningList">
+          <div class="reasoning-item">
+            <div class="reasoning-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              </svg>
+            </div>
+            <div class="reasoning-text" id="reasonFactor1">
+              Glucose is currently falling with a downward velocity.
+            </div>
+          </div>
+          <div class="reasoning-item">
+            <div class="reasoning-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+              </svg>
+            </div>
+            <div class="reasoning-text" id="reasonFactor2">
+              Recent insulin administration (4.0 U taken 45m ago) is reaching peak metabolic absorption.
+            </div>
+          </div>
+          <div class="reasoning-item">
+            <div class="reasoning-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
+              </svg>
+            </div>
+            <div class="reasoning-text" id="reasonFactor3">
+              Moderate physical activity markedly accelerates peripheral glucose uptake.
+            </div>
+          </div>
+        </div>
+
+        <div class="reasoning-summary" id="reasoningSummaryText">
+          Agent synthesis: Active insulin combined with exercise produces a compounding downward slope into the hypoglycemia range.
+        </div>
+      </article>
+
+      <!-- 5. SMART ACTION CARD -->
+      <article class="dash-card smart-action-card glass-panel" id="cardSmartAction">
+        <div class="card-header">
+          <span class="card-eyebrow">PROPOSED FOLLOW-UP ACTION</span>
+          <span class="action-status-badge pending" id="actionStatusBadge">Awaiting Approval</span>
+        </div>
+        
+        <div class="action-body">
+          <div class="action-title-group">
+            <div class="action-icon-badge" id="actionIconBadge">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="action-title" id="actionTitle">DiaEase Recommends:</h3>
+              <p class="action-recommendation" id="actionRecommendationText">Set a 15-minute glucose re-check reminder.</p>
+            </div>
+          </div>
+
+          <p class="action-subtext" id="actionSubtext">
+            The Agent detected elevated near-term risk and recommends a follow-up check.
+          </p>
+
+          <!-- Suggested Safeguard Steps -->
+          <div class="suggested-steps-box" id="suggestedStepsBox">
+            <div class="steps-title">Agent Recommended Steps:</div>
+            <ul class="steps-list" id="actionStepsList">
+              <li>Set a 15-minute timer for rapid glucose re-check</li>
+              <li>Keep 15g of fast-acting carbohydrates accessible (e.g. 4oz fruit juice)</li>
+              <li>Pause strenuous physical activity while glucose stabilizes</li>
+            </ul>
+          </div>
+
+          <!-- Interactive Approval Interface -->
+          <div class="action-buttons-group" id="actionButtonsGroup">
+            <button type="button" class="btn-approve" id="btnApproveAction" onclick="handleApproveAction()">
+              <span class="btn-check">✓</span>
+              <span>APPROVE ACTION</span>
+            </button>
+            <button type="button" class="btn-dismiss" id="btnDismissAction" onclick="handleDismissAction()">
+              <span>DISMISS</span>
+            </button>
+          </div>
+
+          <!-- Dynamic Result Banner (shown post-approval or dismissal) -->
+          <div class="action-result-banner hidden" id="actionResultBanner">
+            <div class="result-icon-wrap" id="resultIconWrap">✓</div>
+            <div class="result-content">
+              <h4 class="result-headline" id="resultHeadline">Action approved</h4>
+              <p class="result-detail" id="resultDetail">Glucose re-check reminder created for 15 minutes from now.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="safety-note">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <span>DiaEase actions never modify prescription medication doses.</span>
+        </div>
+      </article>
+
+      <!-- 6. ADAPTIVE PATTERN CARD -->
+      <article class="dash-card pattern-card glass-panel" id="cardPattern">
+        <div class="card-header">
+          <span class="card-eyebrow">LONGITUDINAL ADAPTIVE PROFILE</span>
+          <span class="badge badge-pattern" id="patternStatusBadge">Pattern Detected</span>
+        </div>
+        <h3 class="card-title">Adaptive Pattern Insight</h3>
+
+        <div class="pattern-body">
+          <div class="pattern-quote-box">
+            <div class="quote-mark">“</div>
+            <p class="pattern-message" id="patternMessage">
+              Similar elevated-risk situations have occurred after physical activity following rapid insulin administration.
+            </p>
+          </div>
+
+          <div class="pattern-recommendation-block">
+            <div class="rec-label">Personalized Recommendation</div>
+            <p class="rec-content" id="patternRecommendation">
+              Continue logging glucose around activity so DiaEase can better understand your pattern profile. Consider pre-exercise carbohydrate buffering with your healthcare team.
+            </p>
+          </div>
+
+          <div class="pattern-footer">
+            <span class="pattern-stat" id="patternRecordsCount">Analyzed historical sessions: 5 entries</span>
+            <span class="pattern-badge-pill">Adaptive Learning Active</span>
+          </div>
+        </div>
+      </article>
+    </main>
+
+    <!-- Safety Disclaimer Footer -->
+    <footer class="app-footer">
+      <div class="disclaimer-panel glass-panel">
+        <div class="disclaimer-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <p class="disclaimer-text">
+          <strong>Medical Notice:</strong> DiaEase is a prototype decision-support system and is not a medical device or a substitute for professional medical advice, diagnosis, or clinical treatment.
+        </p>
+      </div>
+      <div class="footer-meta">
+        <span>DiaEase Hackathon MVP &bull; Decision Support & AI Information Assistant</span>
+      </div>
+    </footer>
+
+    <!-- Floating AI Information Assistant Launcher Button -->
+    <button type="button" class="floating-assistant-btn" id="floatingAssistantBtn" onclick="toggleChatWindow()" aria-label="Open DiaEase AI Information Assistant">
+      <span class="assistant-btn-sparkle">✨</span>
+      <span class="assistant-btn-label">DiaEase AI</span>
+      <span class="assistant-pulse-ring"></span>
+    </button>
+
+    <!-- Floating Glassmorphic AI Information Assistant Chat Window -->
+    <aside class="ai-chat-window glass-panel hidden" id="aiChatWindow" aria-labelledby="chatHeaderTitle">
+      <div class="chat-header">
+        <div class="chat-header-brand">
+          <div class="chat-avatar">
+            <span>✨</span>
+          </div>
+          <div>
+            <h4 class="chat-title" id="chatHeaderTitle">DiaEase AI</h4>
+            <p class="chat-subtitle">Health information &amp; explanations</p>
+          </div>
+        </div>
+        <div class="chat-header-actions">
+          <span class="assistant-chip">INFO ASSISTANT</span>
+          <button type="button" class="chat-close-btn" onclick="toggleChatWindow()" aria-label="Close Assistant">✕</button>
+        </div>
+      </div>
+
+      <!-- Assistant Context Tag -->
+      <div class="chat-context-pill">
+        <span class="dot-online"></span>
+        <span id="chatContextSummary">Context aware: 82 mg/dL &bull; Falling &bull; High Risk</span>
+      </div>
+
+      <!-- Suggested Quick Prompt Chips -->
+      <div class="suggested-prompts-bar">
+        <span class="suggested-title">Suggested:</span>
+        <div class="suggested-chips-scroll">
+          <button type="button" class="prompt-chip" onclick="askPresetQuestion('What is hypoglycaemia?')">
+            What is hypoglycaemia?
+          </button>
+          <button type="button" class="prompt-chip" onclick="askPresetQuestion('Why is my risk high?')">
+            Why is my risk high?
+          </button>
+          <button type="button" class="prompt-chip" onclick="askPresetQuestion('Explain my prediction.')">
+            Explain my prediction.
+          </button>
+          <button type="button" class="prompt-chip" onclick="askPresetQuestion('What does falling glucose mean?')">
+            What does falling glucose mean?
+          </button>
+        </div>
+      </div>
+
+      <!-- Chat Messages Container -->
+      <div class="chat-messages-body" id="chatMessagesBody">
+        <div class="chat-message assistant">
+          <div class="msg-bubble">
+            Hello! I am your <strong>DiaEase AI Information Assistant</strong>. I am here to answer diabetes education questions and explain your active dashboard metrics.
+            <br><br>
+            <em>Note: Unlike the DiaEase Agent which proposes safety actions, I provide informational answers and explanations.</em>
+          </div>
+          <span class="msg-time">Just now</span>
+        </div>
+      </div>
+
+      <!-- Typing Indicator -->
+      <div class="typing-indicator hidden" id="chatTypingIndicator">
+        <span></span><span></span><span></span>
+        <span class="typing-text">DiaEase AI is drafting an explanation...</span>
+      </div>
+
+      <!-- Chat Input Area -->
+      <form class="chat-input-area" id="chatInputForm" onsubmit="handleChatSubmit(event)">
+        <input type="text" id="chatInputText" class="chat-input-field" placeholder="Ask a health or prediction question..." autocomplete="off">
+        <button type="submit" class="chat-send-btn" id="chatSendBtn" aria-label="Send message">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </form>
+    </aside>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
