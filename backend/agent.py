@@ -1,5 +1,5 @@
 """
-DiaEase AI Agent Core Logic
+MedLens AI Agent Core Logic
 Implements the 4 Core Features:
 1. Hypoglycaemia Risk Assessment
 2. 30-Minute Glucose Prediction
@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime, timedelta
 
 DISCLAIMER = (
-    "DiaEase is a prototype decision-support system and is not a medical device "
+    "MedLens is a prototype decision-support system and is not a medical device "
     "or a substitute for professional medical advice."
 )
 
@@ -56,10 +56,8 @@ def normalize_context(data):
     # If user passes hours (e.g. 1.5), normalize to minutes
     try:
         time_since_raw = float(data.get("time_since_insulin", 0.0) or 0.0)
-        # If <= 8 and fractional or small, but if >= 15 clearly minutes.
-        # Check if user explicitly noted time_unit or if <= 6 assume hours if <= 6.0 and float
         unit = str(data.get("time_unit", "")).lower()
-        if unit == "hours" or unit == "hr" or unit == "h":
+        if unit in ["hours", "hr", "h"]:
             time_since_insulin = time_since_raw * 60
         else:
             time_since_insulin = time_since_raw
@@ -286,7 +284,6 @@ def predict_30min_glucose(context):
 
     # Active insulin downward pull
     if insulin_taken and time_since_insulin <= 180:
-        # Dose pull
         active_fraction = max(0.2, (180 - time_since_insulin) / 180.0)
         dose_rate = (insulin_dose * 0.06 + 0.15) * active_fraction
         velocity -= dose_rate
@@ -310,7 +307,6 @@ def predict_30min_glucose(context):
         if minute == 0:
             val = current_glucose
         else:
-            # Slight dampening as glucose approaches extremes
             damping = 1.0
             projected = current_glucose + (velocity * minute * damping)
             val = round(max(38.0, min(380.0, projected)))
@@ -353,7 +349,7 @@ def decide_action(context, risk_assessment, prediction):
         action_type = "glucose_recheck_reminder"
         message = (
             f"High risk detected (Score: {risk_score}, predicted {predicted_glucose} mg/dL). "
-            f"Would you like DiaEase to set a 15-minute glucose re-check reminder and remind you to keep fast-acting carbs ready?"
+            f"Would you like MedLens to set a 15-minute glucose re-check reminder and remind you to keep fast-acting carbs ready?"
         )
         recommended_interval = 15
         suggested_steps = [
@@ -367,7 +363,7 @@ def decide_action(context, risk_assessment, prediction):
         action_type = "scheduled_recheck_reminder"
         message = (
             f"Moderate risk identified (Score: {risk_score}). "
-            f"Would you like DiaEase to set a 30-minute follow-up glucose re-check reminder?"
+            f"Would you like MedLens to set a 30-minute follow-up glucose re-check reminder?"
         )
         recommended_interval = 30
         suggested_steps = [
@@ -439,7 +435,6 @@ def analyze_patterns(history_records):
     if count < 3:
         return get_insufficient_data_recommendation(count)
 
-    # Count relevant traits in history
     activity_and_insulin_high_risk = 0
     falling_trend_entries = 0
     night_entries = 0
@@ -475,7 +470,7 @@ def analyze_patterns(history_records):
                 "has appeared in previous elevated-risk entries."
             ),
             "recommendation": (
-                "Continue logging glucose around activity so DiaEase can better understand your pattern. "
+                "Continue logging glucose around activity so MedLens can better understand your pattern. "
                 "Consider reviewing pre-exercise carbohydrate buffering with your healthcare team."
             )
         }
@@ -506,13 +501,12 @@ def analyze_patterns(history_records):
             )
         }
 
-    # General recurring pattern if diverse records
     return {
         "pattern_detected": True,
         "total_records_analyzed": count,
         "pattern_type": "adaptive_baseline_active",
         "message": (
-            f"DiaEase has compiled {count} entries. Glycemic responses show expected post-meal and activity dynamics."
+            f"MedLens has compiled {count} entries. Glycemic responses show expected post-meal and activity dynamics."
         ),
         "recommendation": (
             "Continue logging context before meals and exercise to enhance personalized follow-up accuracy."
@@ -520,14 +514,10 @@ def analyze_patterns(history_records):
     }
 
 
-def false_pattern_structure(count):
-    return False
-
-
 def get_insufficient_data_recommendation(count):
     return {
         "pattern_detected": False,
         "total_records_analyzed": count,
         "message": "Keep logging a few more entries to unlock personalized patterns.",
-        "recommendation": f"Currently {count}/3 required entries logged. DiaEase needs at least 3 entries to identify recurring patterns."
+        "recommendation": f"Currently {count}/3 required entries logged. MedLens needs at least 3 entries to identify recurring patterns."
     }

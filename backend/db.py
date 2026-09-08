@@ -1,5 +1,5 @@
 """
-DiaEase Database Module (SQLite)
+MedLens Database Module (SQLite)
 Minimal schema for logging demo history and tracking user-approved actions.
 """
 
@@ -8,7 +8,10 @@ import os
 import json
 from datetime import datetime
 
-DEFAULT_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "diaease.db")
+DEFAULT_DB_PATH = os.environ.get(
+    "MEDLENS_DB_PATH",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "medlens.db")
+)
 
 
 def get_connection(db_path=None):

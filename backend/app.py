@@ -1,30 +1,58 @@
 """
-DiaEase Flask Application
-REST API server for DiaEase AI Agent.
+MedLens Flask Application
+REST API server for MedLens AI Agent.
 Enables seamless communication with the frontend teammate's interface.
 """
 
 import os
+import sys
+
+# Ensure both repository root and backend directory are in sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+for p in [parent_dir, current_dir]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-from backend.db import (
-    init_db,
-    insert_history,
-    get_history,
-    insert_action,
-    update_action_status,
-    get_action
-)
-from backend.agent import (
-    normalize_context,
-    assess_hypoglycaemia_risk,
-    predict_30min_glucose,
-    decide_action,
-    execute_action,
-    analyze_patterns,
-    DISCLAIMER
-)
+try:
+    from backend.db import (
+        init_db,
+        insert_history,
+        get_history,
+        insert_action,
+        update_action_status,
+        get_action
+    )
+    from backend.agent import (
+        normalize_context,
+        assess_hypoglycaemia_risk,
+        predict_30min_glucose,
+        decide_action,
+        execute_action,
+        analyze_patterns,
+        DISCLAIMER
+    )
+except ImportError:
+    from db import (
+        init_db,
+        insert_history,
+        get_history,
+        insert_action,
+        update_action_status,
+        get_action
+    )
+    from agent import (
+        normalize_context,
+        assess_hypoglycaemia_risk,
+        predict_30min_glucose,
+        decide_action,
+        execute_action,
+        analyze_patterns,
+        DISCLAIMER
+    )
 
 app = Flask(__name__)
 # Enable CORS for all routes and origins so the frontend teammate can easily connect
@@ -39,7 +67,7 @@ def health_check():
     """Health check endpoint for frontend verification."""
     return jsonify({
         "status": "healthy",
-        "service": "DiaEase AI Agent Backend",
+        "service": "MedLens AI Agent Backend",
         "version": "1.0.0",
         "disclaimer": DISCLAIMER
     }), 200
@@ -227,5 +255,5 @@ def recommendation():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    print(f"Starting DiaEase AI Agent Backend on port {port}...")
+    print(f"Starting MedLens AI Agent Backend on port {port}...")
     app.run(host="0.0.0.0", port=port, debug=False)
