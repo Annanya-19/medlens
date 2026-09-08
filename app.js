@@ -560,6 +560,8 @@ function renderActionCard(action) {
 // ==============================================================================
 // ACTION APPROVAL / DISMISSAL FLOW
 // ==============================================================================
+let reminderTimerInterval = null;
+
 async function handleApproveAction() {
   const action = appState.activeAction;
   const statusBadge = document.getElementById('actionStatusBadge');
@@ -610,15 +612,39 @@ async function handleApproveAction() {
 
   resultIcon.textContent = '✓';
   resultIcon.style.background = 'var(--accent-green)';
-  resultHeadline.textContent = '✓ Action approved & active';
-  resultDetail.textContent = executionDetails.confirmation_message || `Glucose re-check reminder created for ${interval} minutes from now.`;
+  resultHeadline.textContent = '✓ Action approved';
+  
+  // Start dynamic countdown timer
+  let remainingSeconds = interval * 60;
+  if (reminderTimerInterval) clearInterval(reminderTimerInterval);
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+  }
+
+  resultDetail.innerHTML = `Glucose re-check reminder created.<br><strong>Target: ${executionDetails.scheduled_reminder_time || 'In ' + interval + 'm'}</strong> &bull; <span style="color:#34d399;font-weight:700">Timer: <span id="reminderCountdown">${formatTime(remainingSeconds)}</span></span>`;
+
+  reminderTimerInterval = setInterval(() => {
+    remainingSeconds--;
+    const countElem = document.getElementById('reminderCountdown');
+    if (countElem) {
+      if (remainingSeconds > 0) {
+        countElem.textContent = formatTime(remainingSeconds);
+      } else {
+        countElem.textContent = '00:00 (Check Glucose Now!)';
+        clearInterval(reminderTimerInterval);
+      }
+    }
+  }, 1000);
 
   statusBadge.className = 'action-status-badge approved';
-  statusBadge.textContent = 'Approved & Scheduled';
+  statusBadge.textContent = 'Approved & Active';
 
   if (statusPill) {
     statusPill.className = 'agent-status-pill';
-    statusText.textContent = '✓ Re-check reminder active';
+    statusText.textContent = '✓ Reminder timer running';
   }
 }
 
