@@ -865,6 +865,22 @@ function generateAssistantAnswer(prompt) {
     • <strong>DiaEase AI Assistant (Me):</strong> Conversational knowledge companion here to answer health questions, explain the Agent's reasoning, and translate glycemic data into clear concepts.`;
   }
 
+  if (query.includes('what should i eat') || query.includes('food') || query.includes('fast-acting') || query.includes('carbs')) {
+    return `When addressing near-term low glucose (&lt; 70 mg/dL), clinical guidelines commonly suggest the <strong>Rule of 15</strong>:
+    <ul style="margin: 0.5rem 0 0.5rem 1.2rem; padding: 0;">
+      <li>Consume <strong>15 grams</strong> of fast-acting carbohydrate (e.g. 4 oz / 120 ml fruit juice, 3–4 glucose tablets, or 5–6 jelly beans).</li>
+      <li>Wait <strong>15 minutes</strong> and re-check your blood glucose.</li>
+      <li>If still below 70 mg/dL, repeat with another 15g.</li>
+    </ul>
+    Avoid high-fat snacks (like chocolate) for rapid rescue because fat delays carbohydrate absorption.`;
+  }
+
+  if (query.includes('insulin') || query.includes('active insulin') || query.includes('dose')) {
+    return `<strong>Rapid-acting insulin</strong> typically reaches peak glucose-lowering activity between <strong>45 and 90 minutes</strong> after injection, and remains metabolically active for 3 to 4 hours.
+    <br><br>
+    In your current session (${ctx.insulin_dose} U taken ${ctx.time_since_insulin}m ago), you are within that active window, which is why the DiaEase Agent flags an elevated near-term slope.`;
+  }
+
   // Fallback comprehensive educational response
   return `Regarding your question about <em>"${escapeHtml(prompt)}"</em>:
   <br><br>
