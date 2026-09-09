@@ -1,5 +1,5 @@
 /**
- * DiaEase — Proactive Hypoglycaemia Decision Support
+ * MedLens — Proactive Hypoglycaemia Decision Support
  * Core Frontend Controller & AI Assistant Engine
  */
 
@@ -12,6 +12,7 @@ const API_BASE = window.location.origin.includes(':5000')
 let appState = {
   currentContext: {
     glucose: 82,
+    current_glucose: 82,
     trend: 'falling',
     insulin_taken: 'yes',
     insulin_dose: 4.0,
@@ -28,7 +29,7 @@ let appState = {
   chatMessages: [
     {
       sender: 'assistant',
-      text: 'Hello! I am your <strong>DiaEase AI Information Assistant</strong>. I provide health information and explain your glycemic metrics.<br><br><em>Note: The DiaEase Agent autonomously analyzes risks and proposes actions; I help you understand the decisions!</em>',
+      text: 'Hello! I am your <strong>MedLens AI Information Assistant</strong>. I provide health information and explain your glycemic metrics.<br><br><em>Note: The MedLens Agent autonomously analyzes risks and proposes actions; I help you understand the decisions!</em>',
       time: 'Just now'
     }
   ]
@@ -165,6 +166,7 @@ async function triggerAnalysis() {
   const activity_level = document.getElementById('inputActivity').value;
 
   const payload = {
+    glucose: glucose,
     current_glucose: glucose,
     trend: trend,
     insulin_taken: insulin_taken,
@@ -183,7 +185,7 @@ async function triggerAnalysis() {
     btn.classList.add('loading');
     btn.disabled = true;
   }
-  if (btnText) btnText.textContent = 'DiaEase Agent is analyzing your context...';
+  if (btnText) btnText.textContent = 'MedLens Agent is analyzing your context...';
   if (statusPill) {
     statusPill.className = 'agent-status-pill analyzing';
     statusText.textContent = '● Analyzing context...';
@@ -224,7 +226,7 @@ async function triggerAnalysis() {
       btn.classList.remove('loading');
       btn.disabled = false;
     }
-    if (btnText) btnText.textContent = 'Analyze with DiaEase Agent';
+    if (btnText) btnText.textContent = 'Analyze with MedLens Agent';
 
     // Update Agent Status Indicator
     if (result.proposed_action && result.proposed_action.requires_approval) {
@@ -715,7 +717,7 @@ async function fetchPatternRecommendation() {
         if (countElem) countElem.textContent = `Analyzed historical sessions: ${data.total_records_analyzed || 5} entries`;
       } else {
         if (msgElem) msgElem.textContent = data.message || 'Keep logging to unlock personalized patterns.';
-        if (recElem) recElem.textContent = data.recommendation || 'DiaEase needs at least 3 entries to identify recurring patterns.';
+        if (recElem) recElem.textContent = data.recommendation || 'MedLens needs at least 3 entries to identify recurring patterns.';
         if (badgeElem) badgeElem.textContent = 'Collecting Baseline';
       }
     }
@@ -725,7 +727,7 @@ async function fetchPatternRecommendation() {
       msgElem.textContent = 'Similar elevated-risk situations have occurred after physical activity following insulin administration.';
     }
     if (recElem && !recElem.textContent) {
-      recElem.textContent = 'Continue logging glucose around activity so DiaEase can better understand your pattern profile. Consider reviewing pre-exercise carbohydrate buffering with your doctor.';
+      recElem.textContent = 'Continue logging glucose around activity so MedLens can better understand your pattern profile. Consider reviewing pre-exercise carbohydrate buffering with your doctor.';
     }
   }
 }
@@ -746,12 +748,63 @@ function toggleChatWindow() {
   }
 }
 
+// Helper to extract safe current context without undefined or null values
+function getSafeCurrentContext() {
+  const ctx = appState.currentContext || {};
+  let glucose = null;
+  if (ctx.glucose !== undefined && ctx.glucose !== null && !isNaN(Number(ctx.glucose))) {
+    glucose = Math.round(Number(ctx.glucose));
+  } else if (ctx.current_glucose !== undefined && ctx.current_glucose !== null && !isNaN(Number(ctx.current_glucose))) {
+    glucose = Math.round(Number(ctx.current_glucose));
+  }
+
+  const trend = (ctx.trend && typeof ctx.trend === 'string' && ctx.trend.trim()) 
+    ? ctx.trend.trim().toLowerCase() 
+    : null;
+
+  const insulinTaken = ctx.insulin_taken === 'yes' || ctx.insulin_taken === true;
+  const insulinDose = ctx.insulin_dose !== undefined && ctx.insulin_dose !== null ? Number(ctx.insulin_dose) : 0;
+  const timeSinceInsulin = ctx.time_since_insulin !== undefined && ctx.time_since_insulin !== null ? Number(ctx.time_since_insulin) : 0;
+  const activityLevel = (ctx.activity_level && typeof ctx.activity_level === 'string') ? ctx.activity_level.trim().toLowerCase() : 'none';
+
+  const analysis = appState.activeAnalysis;
+  const riskLevel = (analysis && analysis.risk_level) ? analysis.risk_level : null;
+  const riskScore = (analysis && analysis.risk_score !== undefined && analysis.risk_score !== null) ? analysis.risk_score : null;
+  const predGlucose = (analysis && analysis.prediction && analysis.prediction.predicted_glucose !== undefined && analysis.prediction.predicted_glucose !== null) 
+    ? Math.round(Number(analysis.prediction.predicted_glucose)) 
+    : null;
+
+  const hasContext = glucose !== null && !isNaN(glucose);
+
+  return {
+    glucose,
+    trend,
+    insulinTaken,
+    insulinDose,
+    timeSinceInsulin,
+    activityLevel,
+    analysis,
+    riskLevel,
+    riskScore,
+    predGlucose,
+    hasContext,
+    ctx
+  };
+}
+
 function updateChatContextPill() {
   const pill = document.getElementById('chatContextSummary');
   if (!pill) return;
-  const ctx = appState.currentContext;
-  const risk = appState.activeAnalysis ? appState.activeAnalysis.risk_level : 'HIGH';
-  pill.textContent = `Context aware: ${ctx.glucose} mg/dL • ${ctx.trend.charAt(0).toUpperCase() + ctx.trend.slice(1)} • ${risk} Risk`;
+  const context = getSafeCurrentContext();
+  if (context.hasContext && context.riskLevel) {
+    const trendDisplay = context.trend ? (context.trend.charAt(0).toUpperCase() + context.trend.slice(1)) : 'Stable';
+    pill.textContent = `Context aware: ${context.glucose} mg/dL • ${trendDisplay} • ${context.riskLevel} Risk`;
+  } else if (context.hasContext) {
+    const trendDisplay = context.trend ? (context.trend.charAt(0).toUpperCase() + context.trend.slice(1)) : 'Stable';
+    pill.textContent = `Context aware: ${context.glucose} mg/dL • ${trendDisplay}`;
+  } else {
+    pill.textContent = 'Current glucose data is not available';
+  }
 }
 
 function askPresetQuestion(question) {
@@ -783,7 +836,7 @@ function handleChatSubmit(e) {
     const reply = generateAssistantAnswer(userText);
     appendChatMessage('assistant', reply);
     scrollToChatBottom();
-  }, 750);
+  }, 500);
 }
 
 function appendChatMessage(sender, text) {
@@ -817,76 +870,148 @@ function scrollToChatBottom() {
 // Context-Aware Educational AI Assistant Logic
 function generateAssistantAnswer(prompt) {
   const query = prompt.toLowerCase();
-  const ctx = appState.currentContext;
-  const analysis = appState.activeAnalysis;
-  const glucose = ctx.glucose;
-  const trend = ctx.trend;
-  const predGlucose = analysis?.prediction?.predicted_glucose || 45;
-  const riskLevel = analysis?.risk_level || 'HIGH';
-  const riskScore = analysis?.risk_score || 64;
+  const cleanPrompt = query.trim();
+  const stripped = cleanPrompt.replace(/[?!.,;:~`]/g, '').trim();
 
-  if (query.includes('what is hypoglycaemia') || query.includes('hypoglycemia') || query.includes('what is hypo')) {
-    return `<strong>Hypoglycaemia</strong> occurs when blood glucose drops below the safe physiological threshold, typically defined as <strong>&lt; 70 mg/dL</strong>.
+  // --------------------------------------------------------------------------
+  // 1. GREETINGS (e.g. "hi", "hello", "hey", "good morning")
+  // Return friendly greeting and DO NOT reference glucose, risk, or context.
+  // --------------------------------------------------------------------------
+  const pureGreetingWords = ['hi', 'hello', 'hey', 'greetings', 'howdy', 'sup', 'yo', 'good morning', 'good afternoon', 'good evening'];
+  const isGreetingPattern = pureGreetingWords.includes(stripped) ||
+    /^(hi|hello|hey|greetings|howdy|sup|yo)(\s+(there|assistant|bot|medlens))?$/i.test(stripped) ||
+    /^good\s*(morning|afternoon|evening|day)$/i.test(stripped);
+
+  // Check if message also contains an explicit medical question
+  const medicalQuestionKeywords = ['hypo', 'glucose', 'sugar', 'insulin', 'trend', 'falling', 'rising', 'food', 'carb', 'eat', 'prediction', 'why', 'trajectory', 'risk', 'dose', 'symptom'];
+  const hasMedicalQuestion = medicalQuestionKeywords.some(kw => cleanPrompt.includes(kw));
+
+  if (isGreetingPattern && !hasMedicalQuestion) {
+    return `Hello! I am your <strong>MedLens AI Assistant</strong>.
     <br><br>
-    Common early signs include shakiness, sweating, lightheadedness, and palpitations. If left unaddressed, severe hypoglycemia can lead to confusion or loss of consciousness. Standard clinical guidance suggests taking 15g of fast-acting carbohydrates (e.g. 4oz fruit juice) and re-checking in 15 minutes.`;
+    How can I help you today? You can ask me general diabetes questions (e.g., <em>"What is hypoglycaemia?"</em> or <em>"What is the Rule of 15?"</em>) or ask about your active metrics (e.g., <em>"Why is my risk high?"</em> or <em>"Explain my 30-minute prediction"</em>).`;
   }
 
-  if (query.includes('why is my risk high') || query.includes('why risk') || query.includes('risk high') || query.includes('why high')) {
-    let reasons = [];
-    if (glucose <= 85) reasons.push(`Current glucose (${glucose} mg/dL) is already approaching the 70 mg/dL threshold`);
-    if (trend === 'falling') reasons.push('Glucose velocity is currently negative (falling trend)');
-    if (ctx.insulin_taken === 'yes' || ctx.insulin_taken === true) reasons.push(`Active insulin (${ctx.insulin_dose} U taken ${ctx.time_since_insulin}m ago) is in its active absorption window`);
-    if (ctx.activity_level === 'moderate' || ctx.activity_level === 'high') reasons.push(`${ctx.activity_level} exercise increases muscle glucose consumption`);
+  // --------------------------------------------------------------------------
+  // 2. GENERAL HEALTH-INFORMATION QUESTIONS
+  // Educational responses explaining diabetes concepts without forcing patient data
+  // --------------------------------------------------------------------------
+  if (query.includes('what is hypoglycaemia') || query.includes('hypoglycemia') || query.includes('what is hypo') || query.includes('define hypo') || query.includes('symptom')) {
+    return `<strong>Hypoglycaemia</strong> occurs when blood glucose drops below the safe physiological threshold, clinically defined as <strong>&lt; 70 mg/dL</strong>.
+    <br><br>
+    Common early symptoms include shakiness, sweating, lightheadedness, fast heartbeat, and sudden hunger. If left unaddressed, severe hypoglycemia can cause confusion or loss of consciousness. Standard clinical guidance suggests taking 15g of fast-acting carbohydrates (e.g., 4oz fruit juice or 3–4 glucose tablets) and re-checking in 15 minutes.`;
+  }
 
-    return `Your risk is evaluated as <strong>${riskLevel} (${riskScore}% probability)</strong> because:
+  if (query.includes('what should i eat') || query.includes('rule of 15') || query.includes('fast-acting') || query.includes('rescue carb') || (query.includes('food') && !query.includes('risk'))) {
+    return `When treating near-term low glucose (&lt; 70 mg/dL), clinical guidelines commonly recommend the <strong>Rule of 15</strong>:
+    <ul style="margin: 0.5rem 0 0.5rem 1.2rem; padding: 0;">
+      <li>Consume <strong>15 grams</strong> of fast-acting carbohydrates (e.g., 4 oz / 120 ml fruit juice, 3–4 glucose tablets, or 5–6 jelly beans).</li>
+      <li>Wait <strong>15 minutes</strong> and re-check your blood glucose.</li>
+      <li>If still below 70 mg/dL, repeat with another 15g of fast-acting carbs.</li>
+    </ul>
+    Avoid high-fat snacks (like chocolate or pastry) for immediate recovery because dietary fats delay carbohydrate absorption.`;
+  }
+
+  if (query.includes('difference between agent and assistant') || (query.includes('agent') && query.includes('assistant'))) {
+    return `Great question! Here is how we complement each other:
+    <br><br>
+    • <strong>MedLens Agent:</strong> Autonomous decision engine that continuously computes risk scores, simulates 30-minute trajectories, and proposes actionable safety interventions requiring your explicit approval.
+    <br><br>
+    • <strong>MedLens AI Assistant (Me):</strong> Conversational knowledge companion here to answer health questions, explain the Agent's reasoning, and translate glycemic data into clear concepts.`;
+  }
+
+  if (query.includes('what does falling mean') || query.includes('falling trend') || (query.includes('trend') && !query.includes('my'))) {
+    return `A <strong>falling glucose trend (↓)</strong> indicates that your blood sugar is decreasing by more than ~2 mg/dL per minute.
+    <br><br>
+    When combined with active insulin or physical exertion, falling trends create negative glycemic momentum and require closer monitoring to avoid sudden dips into hypoglycaemia.`;
+  }
+
+  if (query.includes('how does insulin work') || (query.includes('insulin') && !query.includes('my') && !query.includes('risk') && !query.includes('dose'))) {
+    return `<strong>Rapid-acting insulin</strong> typically begins lowering blood glucose within 15 minutes, reaches peak activity between <strong>45 and 90 minutes</strong> after administration, and remains metabolically active for 3 to 4 hours.
+    <br><br>
+    During the peak window, downward pressure on glucose is highest, especially if unbuffered by carbohydrates or accelerated by physical exercise.`;
+  }
+
+  // --------------------------------------------------------------------------
+  // 3. QUESTIONS ABOUT USER'S CURRENT MEDLENS RISK / PREDICTION / CONTEXT
+  // --------------------------------------------------------------------------
+  const context = getSafeCurrentContext();
+
+  if (query.includes('why is my risk high') || query.includes('why risk') || query.includes('why is my risk') || query.includes('my risk') || query.includes('risk high') || query.includes('why high')) {
+    if (!context.hasContext) {
+      return `Current glucose data is not available. Please enter your metrics and click 'Analyze with MedLens Agent' on the dashboard to calculate your risk.`;
+    }
+
+    const riskDisplay = context.riskLevel 
+      ? `${context.riskLevel}${context.riskScore !== null ? ` (Score: ${context.riskScore}/100)` : ''}` 
+      : 'evaluated based on your current inputs';
+
+    let reasons = [];
+    if (context.glucose <= 85) {
+      reasons.push(`Current glucose (${context.glucose} mg/dL) is approaching or in the low threshold range`);
+    }
+    if (context.trend === 'falling') {
+      reasons.push('Glucose velocity is currently negative (falling trend)');
+    }
+    if (context.insulinTaken) {
+      reasons.push(`Active insulin (${context.insulinDose} U taken ${context.timeSinceInsulin}m ago) is within its peak absorption window`);
+    }
+    if (context.activityLevel === 'moderate' || context.activityLevel === 'high') {
+      reasons.push(`${context.activityLevel.charAt(0).toUpperCase() + context.activityLevel.slice(1)} physical activity markedly accelerates muscle glucose uptake`);
+    }
+    if (reasons.length === 0) {
+      reasons.push(`Glucose level of ${context.glucose} mg/dL with ${context.trend || 'stable'} trend`);
+    }
+
+    return `Your risk is evaluated as <strong>${riskDisplay}</strong> because:
     <ul style="margin: 0.5rem 0 0.5rem 1.2rem; padding: 0;">
       ${reasons.map(r => `<li>${r}</li>`).join('')}
     </ul>
-    The <strong>DiaEase Agent</strong> detects these compounding factors before the low actually manifests, allowing you to prepare proactively.`;
+    The <strong>MedLens Agent</strong> detects these compounding factors before an acute low occurs, allowing you to prepare proactively.`;
   }
 
-  if (query.includes('explain my prediction') || query.includes('trajectory') || query.includes('prediction')) {
-    return `Based on your active glucose (${glucose} mg/dL) and rapid metabolic downward velocity, the model predicts your glucose will reach approximately <strong>${predGlucose} mg/dL</strong> within the next 30 minutes.
+  if (query.includes('explain my prediction') || query.includes('my prediction') || query.includes('trajectory') || query.includes('predicted')) {
+    if (!context.hasContext) {
+      return `Current glucose data is not available. Please enter your metrics and click 'Analyze with MedLens Agent' on the dashboard to view your 30-minute prediction trajectory.`;
+    }
+
+    const predTarget = context.predGlucose !== null 
+      ? `reach approximately <strong>${context.predGlucose} mg/dL</strong>` 
+      : 'continue along its projected path';
+
+    return `Based on your current glucose (${context.glucose} mg/dL) and metabolic trend (${context.trend || 'stable'}), the model predicts your glucose will ${predTarget} within the next 30 minutes.
     <br><br>
-    Because this dips below the <strong>70 mg/dL alert zone</strong>, the DiaEase Agent proposed setting a timer so you can re-check and prepare fast-acting carbs without delay.`;
+    The <strong>MedLens Agent</strong> utilizes this forward simulation to propose proactive check reminders before symptomatic lows occur.`;
   }
 
-  if (query.includes('falling') || query.includes('what does falling mean') || query.includes('trend')) {
-    return `A <strong>falling glucose trend (↓)</strong> indicates that your blood sugar is decreasing by more than ~2 mg/dL per minute.
+  if (query.includes('what is my glucose') || query.includes('my current glucose') || query.includes('my status') || query.includes('how am i')) {
+    if (!context.hasContext) {
+      return `Current glucose data is not available. Please enter your values in the dashboard to review your status.`;
+    }
+    const trendText = context.trend ? (context.trend.charAt(0).toUpperCase() + context.trend.slice(1)) : 'Stable';
+    const riskText = context.riskLevel || 'Pending analysis';
+    return `Your current logged glucose is <strong>${context.glucose} mg/dL</strong> with a <strong>${trendText}</strong> trend. Current evaluated risk level: <strong>${riskText}</strong>.`;
+  }
+
+  // --------------------------------------------------------------------------
+  // 4. FALLBACK GENERAL RESPONSE
+  // Safe handling whether context exists or is unavailable
+  // --------------------------------------------------------------------------
+  if (context.hasContext) {
+    const trendDisplay = context.trend ? context.trend : 'stable';
+    const riskDisplay = context.riskLevel ? context.riskLevel : 'calculated';
+    return `Regarding your question about <em>"${escapeHtml(prompt)}"</em>:
     <br><br>
-    When combined with active insulin or physical exertion, falling trends require closer monitoring to avoid sudden dips into hypoglycaemia.`;
-  }
-
-  if (query.includes('difference between agent and assistant') || query.includes('agent') || query.includes('assistant')) {
-    return `Great question! Here is how we differ:
+    In your active session (Glucose: <strong>${context.glucose} mg/dL</strong>, Trend: <strong>${trendDisplay}</strong>, Risk: <strong>${riskDisplay}</strong>), maintaining glycemic stability is the primary focus.
     <br><br>
-    • <strong>DiaEase Agent:</strong> Autonomous decision engine that continuously computes risk scores, predicts 30-minute trajectories, and proposes actionable safety interventions requiring your approval.
+    <em>Disclaimer: MedLens provides prototype educational decision-support and is not a substitute for professional medical advice.</em>`;
+  } else {
+    return `Regarding your question about <em>"${escapeHtml(prompt)}"</em>:
     <br><br>
-    • <strong>DiaEase AI Assistant (Me):</strong> Conversational knowledge companion here to answer health questions, explain the Agent's reasoning, and translate glycemic data into clear concepts.`;
-  }
-
-  if (query.includes('what should i eat') || query.includes('food') || query.includes('fast-acting') || query.includes('carbs')) {
-    return `When addressing near-term low glucose (&lt; 70 mg/dL), clinical guidelines commonly suggest the <strong>Rule of 15</strong>:
-    <ul style="margin: 0.5rem 0 0.5rem 1.2rem; padding: 0;">
-      <li>Consume <strong>15 grams</strong> of fast-acting carbohydrate (e.g. 4 oz / 120 ml fruit juice, 3–4 glucose tablets, or 5–6 jelly beans).</li>
-      <li>Wait <strong>15 minutes</strong> and re-check your blood glucose.</li>
-      <li>If still below 70 mg/dL, repeat with another 15g.</li>
-    </ul>
-    Avoid high-fat snacks (like chocolate) for rapid rescue because fat delays carbohydrate absorption.`;
-  }
-
-  if (query.includes('insulin') || query.includes('active insulin') || query.includes('dose')) {
-    return `<strong>Rapid-acting insulin</strong> typically reaches peak glucose-lowering activity between <strong>45 and 90 minutes</strong> after injection, and remains metabolically active for 3 to 4 hours.
+    Current glucose data is not available. You can enter your values in the dashboard and click 'Analyze with MedLens Agent' to evaluate your near-term glycemic trends.
     <br><br>
-    In your current session (${ctx.insulin_dose} U taken ${ctx.time_since_insulin}m ago), you are within that active window, which is why the DiaEase Agent flags an elevated near-term slope.`;
+    <em>Disclaimer: MedLens provides prototype educational decision-support and is not a substitute for professional medical advice.</em>`;
   }
-
-  // Fallback comprehensive educational response
-  return `Regarding your question about <em>"${escapeHtml(prompt)}"</em>:
-  <br><br>
-  In your current context (Glucose: <strong>${glucose} mg/dL</strong>, Trend: <strong>${trend}</strong>, Risk: <strong>${riskLevel}</strong>), stabilizing glucose levels is the primary safety goal.
-  <br><br>
-  <em>Disclaimer: I provide educational health information. For personalized clinical decisions or insulin adjustments, please consult your healthcare provider.</em>`;
 }
 
 function escapeHtml(text) {
@@ -972,7 +1097,7 @@ function runFallbackAnalysis(ctx) {
   if (level === 'HIGH' || predGlucose < 75) {
     actionType = 'glucose_recheck_reminder';
     interval = 15;
-    message = `High risk detected (Score: ${score}, predicted ${predGlucose} mg/dL). Would you like DiaEase to set a 15-minute glucose re-check reminder and keep fast-acting carbs ready?`;
+    message = `High risk detected (Score: ${score}, predicted ${predGlucose} mg/dL). Would you like MedLens to set a 15-minute glucose re-check reminder and keep fast-acting carbs ready?`;
     steps = [
       'Set a 15-minute timer for rapid glucose re-check',
       'Keep 15g of fast-acting carbohydrates accessible (e.g. 4oz fruit juice)',
@@ -981,7 +1106,7 @@ function runFallbackAnalysis(ctx) {
   } else if (level === 'MODERATE' || predGlucose < 90) {
     actionType = 'scheduled_recheck_reminder';
     interval = 30;
-    message = `Moderate risk identified (Score: ${score}). Would you like DiaEase to set a 30-minute follow-up glucose re-check reminder?`;
+    message = `Moderate risk identified (Score: ${score}). Would you like MedLens to set a 30-minute follow-up glucose re-check reminder?`;
     steps = [
       'Set a 30-minute follow-up re-check timer',
       'Monitor for subtle symptoms such as shakiness, sweating, or lightheadedness'

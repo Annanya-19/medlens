@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DiaEase — Proactive Hypoglycaemia Decision Support</title>
-  <meta name="description" content="DiaEase is a proactive hypoglycaemia decision-support prototype predicting near-term glucose risks and proposing autonomous safety actions.">
+  <title>MedLens — Proactive Hypoglycaemia Decision Support</title>
+  <meta name="description" content="MedLens is a proactive hypoglycaemia decision-support prototype predicting near-term glucose risks and proposing autonomous safety actions.">
   
   <!-- Modern Medical Typography: Outfit (Data/Headings) + Inter (Interface/Body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -58,7 +58,7 @@
         </div>
         <div class="brand-meta">
           <div class="brand-title-row">
-            <h1 class="brand-name">DiaEase</h1>
+            <h1 class="brand-name">MedLens</h1>
             <span class="brand-tag">PROTOTYPE</span>
           </div>
           <p class="brand-tagline">Predict before the low.</p>
@@ -71,7 +71,7 @@
           <span class="status-dot-pulse"></span>
           <span class="status-text" id="agentStatusText">AI Agent active</span>
         </div>
-        <div class="agent-badge-info" title="DiaEase Agent autonomously decides and proposes actions. DiaEase Assistant explains.">
+        <div class="agent-badge-info" title="MedLens Agent autonomously decides and proposes actions. MedLens Assistant explains.">
           <span class="info-badge">AGENT SYSTEM</span>
         </div>
       </div>
@@ -112,7 +112,7 @@
           </div>
           <div>
             <h2 class="section-title">Patient Glycemic Context</h2>
-            <p class="section-subtitle">Real-time physiological inputs for the DiaEase Agent</p>
+            <p class="section-subtitle">Real-time physiological inputs for the MedLens Agent</p>
           </div>
         </div>
         <div class="api-status-tag" id="apiStatusTag">
@@ -210,7 +210,7 @@
           <button type="submit" class="analyze-btn" id="analyzeBtn">
             <span class="btn-spinner" id="analyzeSpinner" aria-hidden="true"></span>
             <span class="btn-icon" id="analyzeIcon">⚡</span>
-            <span class="btn-text" id="analyzeBtnText">Analyze with DiaEase Agent</span>
+            <span class="btn-text" id="analyzeBtnText">Analyze with MedLens Agent</span>
           </button>
         </div>
       </form>
@@ -340,7 +340,7 @@
           <span class="card-eyebrow">AGENT REASONING</span>
           <span class="badge badge-autonomous">Autonomous Logic</span>
         </div>
-        <h3 class="card-title">Why DiaEase Thinks This</h3>
+        <h3 class="card-title">Why MedLens Thinks This</h3>
         
         <div class="reasoning-list" id="reasoningList">
           <div class="reasoning-item">
@@ -396,7 +396,7 @@
               </svg>
             </div>
             <div>
-              <h3 class="action-title" id="actionTitle">DiaEase Recommends:</h3>
+              <h3 class="action-title" id="actionTitle">MedLens Recommends:</h3>
               <p class="action-recommendation" id="actionRecommendationText">Set a 15-minute glucose re-check reminder.</p>
             </div>
           </div>
@@ -440,7 +440,7 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
           </svg>
-          <span>DiaEase actions never modify prescription medication doses.</span>
+          <span>MedLens actions never modify prescription medication doses.</span>
         </div>
       </article>
 
@@ -463,7 +463,7 @@
           <div class="pattern-recommendation-block">
             <div class="rec-label">Personalized Recommendation</div>
             <p class="rec-content" id="patternRecommendation">
-              Continue logging glucose around activity so DiaEase can better understand your pattern profile. Consider pre-exercise carbohydrate buffering with your healthcare team.
+              Continue logging glucose around activity so MedLens can better understand your pattern profile. Consider pre-exercise carbohydrate buffering with your healthcare team.
             </p>
           </div>
 
@@ -484,18 +484,18 @@
           </svg>
         </div>
         <p class="disclaimer-text">
-          <strong>Medical Notice:</strong> DiaEase is a prototype decision-support system and is not a medical device or a substitute for professional medical advice, diagnosis, or clinical treatment.
+          <strong>Medical Notice:</strong> MedLens is a prototype decision-support system and is not a medical device or a substitute for professional medical advice, diagnosis, or clinical treatment.
         </p>
       </div>
       <div class="footer-meta">
-        <span>DiaEase Hackathon MVP &bull; Decision Support & AI Information Assistant</span>
+        <span>MedLens Hackathon MVP &bull; Decision Support & AI Information Assistant</span>
       </div>
     </footer>
 
     <!-- Floating AI Information Assistant Launcher Button -->
-    <button type="button" class="floating-assistant-btn" id="floatingAssistantBtn" onclick="toggleChatWindow()" aria-label="Open DiaEase AI Information Assistant">
+    <button type="button" class="floating-assistant-btn" id="floatingAssistantBtn" onclick="toggleChatWindow()" aria-label="Open MedLens AI Information Assistant">
       <span class="assistant-btn-sparkle">✨</span>
-      <span class="assistant-btn-label">DiaEase AI</span>
+      <span class="assistant-btn-label">MedLens AI</span>
       <span class="assistant-pulse-ring"></span>
     </button>
 
@@ -507,7 +507,7 @@
             <span>✨</span>
           </div>
           <div>
-            <h4 class="chat-title" id="chatHeaderTitle">DiaEase AI</h4>
+            <h4 class="chat-title" id="chatHeaderTitle">MedLens AI</h4>
             <p class="chat-subtitle">Health information &amp; explanations</p>
           </div>
         </div>
@@ -546,9 +546,9 @@
       <div class="chat-messages-body" id="chatMessagesBody">
         <div class="chat-message assistant">
           <div class="msg-bubble">
-            Hello! I am your <strong>DiaEase AI Information Assistant</strong>. I am here to answer diabetes education questions and explain your active dashboard metrics.
+            Hello! I am your <strong>MedLens AI Information Assistant</strong>. I am here to answer diabetes education questions and explain your active dashboard metrics.
             <br><br>
-            <em>Note: Unlike the DiaEase Agent which proposes safety actions, I provide informational answers and explanations.</em>
+            <em>Note: Unlike the MedLens Agent which proposes safety actions, I provide informational answers and explanations.</em>
           </div>
           <span class="msg-time">Just now</span>
         </div>
@@ -557,7 +557,7 @@
       <!-- Typing Indicator -->
       <div class="typing-indicator hidden" id="chatTypingIndicator">
         <span></span><span></span><span></span>
-        <span class="typing-text">DiaEase AI is drafting an explanation...</span>
+        <span class="typing-text">MedLens AI is drafting an explanation...</span>
       </div>
 
       <!-- Chat Input Area -->
